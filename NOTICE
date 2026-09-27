@@ -1,0 +1,94 @@
+Qwen3.8-Flash-Next · Swift 1.5 weights · W4A16 Merlin recipe
+Copyright 2026 halt95
+
+This repository's own files (the scripts in serve/ and release/, and the documentation) are licensed under the
+Apache License, Version 2.0 (see LICENSE). The KV-scale sidecar quant/kv_scales-swift-e4m3.json is model-derived
+data, not Apache-2.0; see "Swift 1.5 weights" below.
+
+Serving engine (not included in this repository)
+  Flash-Next v2.2.0, a modified version of vLLM (https://github.com/vllm-project/vllm, Apache License 2.0,
+  Copyright the vLLM project contributors), https://github.com/halt95/qwen38-flash-next-3090s at tag v2.2.0
+  (commit cda592711239fa5061d59ef4858db4e68b217445). release/install-env.sh clones and builds it; it is not copied
+  into or modified by this repository. That repository carries its own LICENSE and NOTICE, which list the vLLM
+  files it adds and modifies and credit the upstream pull requests it ports.
+
+================================================================================
+Swift 1.5 weights (Merlin recipe)
+================================================================================
+
+The checkpoint this repository serves, halt95/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin, is a Derivative
+Work of Swift-Qwen3.8-Flash-Next by UkisAI and of Qwen3.8-Flash-Next by Qwen. It is an independent derivative made
+by halt95. It is not made, reviewed or endorsed by UkisAI or by Qwen. "UkisAI" and "Swift" are UkisAI's names,
+used here only to describe the origin of the weights.
+
+The upstream NOTICE follows unchanged, then UkisAI's notice for redistributors, then credits for the other
+sources in the checkpoint, then the changes made in this derivative.
+
+---- NOTICE of ukisai/Swift1.5-Qwen3.8-Flash-Next (revision 0bd4fe22431372cdad1979267d3ab45aa7e6150a) ----
+Swift-Qwen3.8-Flash-Next
+Copyright 2026 UkisAI
+
+UkisAI's contribution (the "Swift Contribution") is licensed under the
+Swift Open License v1.0. See LICENSE.
+
+This model is a derivative work of Qwen3.8-Flash-Next
+  https://huggingface.co/Qwen/Qwen3.8-Flash-Next
+  Copyright (c) 2026 Qwen
+  Licensed under the Qwen Community License 1.0. See LICENSE-QWEN.
+
+Changes made by UkisAI:
+  - model-*.safetensors: model weights were modified by UkisAI through fine-tuning.
+  - tokenizer.json, tokenizer_config.json: re-serialized from UkisAI's training
+    base. Vocabulary and merges are unchanged; the file format, some metadata
+    fields and the pre-tokenizer pattern differ from the Base Model files.
+  - README.md: replaced. LICENSE (Swift Open License v1.0), NOTICE,
+    benchmarks/ and ukisai-banner.png added.
+  - The Base Model's license text was moved from LICENSE to LICENSE-QWEN.
+  - All other files (config.json, generation_config.json, chat_template.jinja,
+    model.safetensors.index.json, vocab.json, merges.txt,
+    preprocessor_config.json, video_preprocessor_config.json) are unmodified
+    from Qwen3.8-Flash-Next and remain under the Qwen Community License 1.0.
+---- end of upstream NOTICE ----
+(The LICENSE / LICENSE-QWEN names above are UkisAI's own file names on their repository. In this repository the
+Swift Open License v1.0 text is LICENSE-SWIFT and the Qwen Community License 1.0 text is LICENSE-QWEN; LICENSE here
+is Apache-2.0.)
+
+---- Notice for redistributors, verbatim from the Appendix of the Swift Open License v1.0 ----
+   Copyright 2026 UkisAI. Swift Contribution licensed under the Swift Open
+   License v1.0 (https://huggingface.co/ukisai/Swift-Qwen3.8-Flash-Next/blob/main/LICENSE).
+   Derivative of Qwen3.8-Flash-Next, Copyright (c) 2026 Qwen, Qwen Community License 1.0.
+---- end of Appendix notice ----
+
+Other sources in the served checkpoint:
+  - Routed-expert INT4 weights: Intel AutoRound quantization,
+    https://huggingface.co/Intel/Qwen3.8-Flash-Next-W4A16-AutoRound
+    (Qwen Community License 1.0), taken unchanged from the Merlin checkpoint.
+  - FP8 PLE (n-gram embedding) table: RadixArk,
+    https://huggingface.co/RadixArk/Qwen3.8-Flash-Next-NVFP4 (table only; its card
+    defers to the source model's license terms), taken unchanged from the Merlin
+    checkpoint.
+  - Merlin checkpoint (INT8 GDN pack, INT4 MTP pack, assembly of the above):
+    halt95/Qwen3.8-Flash-Next-W4A16-Merlin,
+    https://huggingface.co/halt95/Qwen3.8-Flash-Next-W4A16-Merlin
+    (Qwen Community License 1.0).
+  - Serving engine: vLLM, Apache License 2.0, https://github.com/vllm-project/vllm,
+    run through the unchanged Flash-Next v2.2.0 release (see above; not included in this repository).
+
+Changes made in this derivative (halt95, 2026):
+  - model-*.safetensors: rebuilt from halt95/Qwen3.8-Flash-Next-W4A16-Merlin with the 300 tensors that Swift 1.5
+    changed: attention q/k/v/o and shared-expert projections, kept in BF16; the GDN in_proj_qkv / in_proj_z /
+    out_proj projections, re-packed to INT8 per-channel symmetric in the Merlin checkpoint's format. The routed
+    experts, MTP head and PLE table are the Merlin checkpoint's, unmodified; the tensor-level comparison of Swift
+    1.5 with Qwen3.8-Flash-Next reported them unchanged by Swift 1.5 (full SHA-256 hashes for the MTP head; shard
+    or sampled hashes for the other unchanged groups).
+  - model.safetensors.index.json: re-serialised; byte-identical to the Merlin checkpoint's index (27 weight files); weight_map
+    unchanged.
+  - qsa_kv_scales_swift.json: added to the checkpoint, and shipped in this repository as
+    quant/kv_scales-swift-e4m3.json (the same bytes); static FP8 K/V scales recalibrated on this checkpoint. This
+    file is model-derived data, not Apache-2.0: it is subject to the Swift Open License v1.0 (LICENSE-SWIFT in this
+    repository) and the Qwen Community License 1.0 (LICENSE-QWEN in this repository), the same two licences as the
+    checkpoint it was calibrated on.
+  - This repository's README.md, CHANGELOG.md, NOTICE, docs/, benchmarks/, serve/serve.sh and release/: written
+    for this checkpoint by halt95.
+  - LICENSE-SWIFT (Swift Open License v1.0 text) and LICENSE-QWEN (Qwen Community License 1.0 text) are unchanged
+    copies of the licence texts; LICENSE is the Apache License 2.0 text.
