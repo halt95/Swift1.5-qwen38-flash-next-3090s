@@ -48,7 +48,7 @@ other launcher.
 | | |
 |---|---|
 | repository | https://huggingface.co/halt95/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin |
-| revision | `7ee538a4cf45d91c7bd71124c66038ac52b3a0f7` |
+| revision | `a555a2a987d1b76f71cb1b7589e162462c6aa819` |
 | files | 41, listed with their SHA-256 in `release/checkpoint.sha256` |
 
 The checkpoint's own `SHA256SUMS` on Hugging Face covers the same 41 files.

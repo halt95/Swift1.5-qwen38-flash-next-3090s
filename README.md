@@ -39,7 +39,7 @@ sha256sum -c release/SHA256SUMS                          # the repository files
 release/install-env.sh
 # 2. the checkpoint, at the pinned revision
 HF_HUB_DISABLE_TELEMETRY=1 engine/venv-v2.2/bin/hf download halt95/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin \
-  --revision 7ee538a4cf45d91c7bd71124c66038ac52b3a0f7 --local-dir ./ckpt
+  --revision a555a2a987d1b76f71cb1b7589e162462c6aa819 --local-dir ./ckpt
 (cd ckpt && sha256sum -c ../release/checkpoint.sha256)   # the 41 checkpoint files
 # 3. serve on the four cards
 serve/serve.sh "$PWD/ckpt"
@@ -80,7 +80,7 @@ git clone --branch v2.2.0-swift1.5 https://github.com/halt95/Swift1.5-qwen38-fla
 cd Swift1.5-qwen38-flash-next-3090s
 docker build -t swift1.5-qwen38-flash-next-3090s:v2.2.0-swift1.5 .   # the release's own install route
 hf download halt95/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin \
-  --revision 7ee538a4cf45d91c7bd71124c66038ac52b3a0f7 --local-dir /path/to/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin
+  --revision a555a2a987d1b76f71cb1b7589e162462c6aa819 --local-dir /path/to/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin
 (cd /path/to/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin && sha256sum -c /path/to/clone/release/checkpoint.sha256)
 MODEL_DIR=/path/to/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin docker compose up -d
 docker compose logs -f flash-next      # wait for "Application startup complete" (first start compiles the graphs)
@@ -249,6 +249,8 @@ no knobs set and `xhigh` as the server default.
 | MTP mean acceptance length (tokens per step, at most 4) | 2.90 | 2.92 |
 | GSM8K-200, thinking off (correct of 200, two runs) | 199 / 199 | 198 / 199 |
 | GSM8K-200, thinking on at `xhigh` (correct of 200) | 197 | 198 |
+| GSM8K-200, thinking on, mean completion tokens at `low` / `medium` / `xhigh` (two runs each) | 262 / 296 / 416 | 259 / 284 / 304 |
+| Scored retrieval of a 10-character code at ~4K / 131K / 256K prompt tokens, thinking on at `xhigh` | 3 of 3 | 3 of 3 |
 | Loop check at `xhigh` (generations that collapsed into repetition, of 72) | 0 | 0 |
 | KV pool (tokens) | 806,792 | 806,792 |
 
@@ -272,6 +274,16 @@ no knobs set and `xhigh` as the server default.
   with this repository's `release/install-env.sh`, through `serve/serve.sh` with `SCALES` pointed at the Merlin
   sidecar. The same install served the Swift 1.5 build through `serve/serve.sh` with `SCALES` unset and scored
   197/200.
+- Completion tokens by effort: the same GSM8K-200 set, thinking on, served sampling, up to 16,384 tokens, two runs per
+  cell with different seeds. Accuracy was 197–198 of 200 in every cell for both checkpoints. At `xhigh` the Swift 1.5
+  build used 27 % fewer completion tokens than the Merlin checkpoint (19 % after excluding one Merlin answer that hit
+  the 16,384-token cap); at `low` and `medium` the two differ by less than the run-to-run spread (up to 6 %). GSM8K is
+  an easy set, so reasoning effort moves its token counts only modestly; no harder set was run. Both checkpoints were
+  served through this repository's `release/install-env.sh` and `serve/serve.sh`.
+- Retrieval: one 10-character code placed once inside filler text, prompts sized with the server's tokenizer (4,159 /
+  131,182 / 256,353 tokens for the Swift 1.5 build), thinking on at `xhigh`; the reply had to contain the code. Both
+  checkpoints also passed the same smoke set: warm-prefix reuse, a tool call, a reasoning answer, four vision prompts,
+  JSON-schema output and eight concurrent requests.
 - The loop check is 12 long-form prompts × 6 seeds, thinking on at `xhigh`, up to 16,384 tokens (8,192 for the
   shorter prompts), 6 at a time. A generation counts as collapsed when the distinct-word-pair ratio of its last 30 % of
   words is below 0.15, or one 12-word window occurs 20 or more times. Details: [docs/loop-check.md](docs/loop-check.md).
@@ -299,7 +311,7 @@ English, code and CJK text tokenize identically.
 ### Reasoning effort
 
 The v2.2.0 launcher's server default is `low`; this repository's `serve/serve.sh` sets `xhigh` as the default.
-We recommend `xhigh` for Swift 1.5. [UkisAI's model card](https://huggingface.co/ukisai/Swift1.5-Qwen3.8-Flash-Next)
+We recommend `xhigh` for Swift 1.5. On GSM8K-200, `xhigh` cost the Swift 1.5 build 304 completion tokens per answer on average against 259 at `low`, at the same accuracy; the Merlin checkpoint's `xhigh` cost 416 (see Benchmarks). [UkisAI's model card](https://huggingface.co/ukisai/Swift1.5-Qwen3.8-Flash-Next)
 reports its evaluations at `xhigh`. Our own `xhigh` evidence is the GSM8K-200 and loop-check rows in
 [Benchmarks](#benchmarks).
 

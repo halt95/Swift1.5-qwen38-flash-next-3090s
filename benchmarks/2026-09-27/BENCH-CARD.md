@@ -141,7 +141,12 @@ the same check, confirming the check discriminates a real mismatch rather than a
 
 ## 6. What this card does not show
 
-- **No container.** This release ships no container image; every number above comes from the bare-metal launcher.
+- **Routed experts.** A second build with UkisAI's AutoRound routed experts in place of Intel's, converted to this
+  checkpoint's packing, measured level with the release on step time, aggregate decode, GSM8K-200 and MTP acceptance
+  (two interleaved runs each; every difference within the same-arm run-to-run spread). Swift 1.5 did not change the
+  routed experts, so both sets quantise the same weights. That build is not published.
+- **Container.** The container route (added 2026-09-28) was built and entrypoint-checked on a host without GPUs;
+  every number above comes from the bare-metal launcher.
 - **One hardware profile.** Four RTX 3090s on PCIe Gen4 x16 with peer-to-peer, 220 W, and this launcher's fixed
   layout (TP2 × PP2 + EP, MTP K=3, 806,792-token pool). Other GPUs, layouts, power caps and host configurations
   are untested.
@@ -152,3 +157,29 @@ the same check, confirming the check discriminates a real mismatch rather than a
   Swift-vs-Merlin difference in those same two metrics (step time −0.36 % to +0.48 %; aggregate N=8 +1.09 %).
   Tokens per event varied more between runs of the same checkpoint too, but that metric tracks the generated
   text by construction, so it is not compared against a noise floor the same way.
+
+## 7. Completion tokens by reasoning effort
+
+Run (e), 2026-09-28: GSM8K-200, thinking on, served sampling, up to 16,384 tokens, per-request `reasoning_effort`, two
+runs per cell with different seed bases, one boot per checkpoint through `release/install-env.sh` + `serve/serve.sh`.
+
+| effort | Merlin run 1 / run 2: correct, mean tokens | Swift run 1 / run 2: correct, mean tokens | Swift ÷ Merlin (means) |
+|---|---|---|---:|
+| `low` | 198, 265.1 / 198, 258.7 | 197, 251.2 / 197, 266.5 | 0.99 |
+| `medium` | 197, 303.1 / 197, 288.9 | 198, 283.1 / 198, 285.1 | 0.96 |
+| `xhigh` | 197, 378.9 / 198, 452.3 (one answer hit the 16,384 cap) | 197, 308.0 / 197, 300.5 | 0.73 (0.81 with that answer excluded) |
+
+Run-to-run spread of the same checkpoint: Swift 6.1 / 0.7 / 2.5 % and Merlin 2.5 / 4.9 / 19 % (1.8 % with the capped
+answer excluded) at `low` / `medium` / `xhigh`. The `xhigh` difference is the only one larger than the spread. Swift's
+own count barely rises from `medium` to `xhigh` (284 → 304) while Merlin's does (296 → 416). GSM8K is an easy set, so
+effort moves its token counts only modestly; no harder set was run.
+
+## 8. Smokes and scored retrieval
+
+Same boots as section 7, both checkpoints: warm-prefix reuse (an 8.4K-token prompt twice; 3,200 cached tokens on the
+second send, identical output), a tool call (`get_weather` returned with `finish_reason: tool_calls`), a reasoning answer,
+four single-image vision prompts (all four colours named), JSON-schema output (`strict`, a three-field object),
+eight concurrent requests (8 of 8 correct), and a scored retrieval of a 10-character code placed once in filler text
+at 4,159 / 131,182 / 256,353 prompt tokens (thinking on at `xhigh`, 2,048-token answer budget): 3 of 3 for both. A
+first attempt at ~258K was refused by the server because prompt, answer budget and the template's own text exceeded
+the 262,144-token limit; the depth was reduced, not the check.
