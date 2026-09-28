@@ -15,5 +15,9 @@ First public release of this repository. There is no earlier public version and 
   `SCALES` set to this checkpoint's sidecar and `xhigh` as the server default reasoning effort.
 - KV-scale sidecar: `quant/kv_scales-swift-e4m3.json`, static FP8 K/V scales calibrated on this checkpoint.
 - Evidence: bench card `benchmarks/2026-09-27/`, loop check `docs/loop-check.md`.
+- Container route (added 2026-09-28, same version): `Dockerfile`, `docker-compose.yml`, `.dockerignore`,
+  `serve/docker-entrypoint.sh`. The image runs `release/install-env.sh` and serves through `serve/serve.sh` with
+  the checkpoint mounted at `/model`; built and entrypoint-checked on a host without GPUs, not yet GPU-served in a
+  container.
 - Licences: `LICENSE` (Apache-2.0), `LICENSE-SWIFT` (Swift Open License v1.0), `LICENSE-QWEN` (Qwen Community
   License 1.0), `NOTICE`.

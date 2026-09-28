@@ -9,21 +9,25 @@ tracked file except itself (this manifest included); check it from the repositor
 | file | mode | purpose |
 |---|---|---|
 | `.gitattributes` | 100644 | line-ending rule: every text file LF, PNG images binary |
+| `.dockerignore` | 100644 | allow-list for the container build context: the install and serve files and the sidecar only |
 | `.gitignore` | 100644 | keeps the installed engine (`engine/`), a checkpoint downloaded to `ckpt/`, Python bytecode and compile caches out of the repository |
 | `CHANGELOG.md` | 100644 | changes by version |
 | `LICENSE` | 100644 | Apache License 2.0, for this repository's scripts and documentation |
 | `LICENSE-QWEN` | 100644 | Qwen Community License 1.0 text (the checkpoint and the sidecar) |
 | `LICENSE-SWIFT` | 100644 | Swift Open License v1.0 text (the checkpoint and the sidecar) |
+| `Dockerfile` | 100644 | the container image: python:3.13-slim-bookworm (digest-pinned) + `release/install-env.sh` + `serve/serve.sh` via `serve/docker-entrypoint.sh`; the checkpoint is mounted at `/model` |
 | `NOTICE` | 100644 | attribution: this repository, the engine (not included), UkisAI's notice, the checkpoint's sources and the changes made |
 | `README.md` | 100644 | what this release is, how to install, serve and check it, results, licences |
 | `benchmarks/2026-09-27/BENCH-CARD.md` | 100644 | the bench card: Merlin checkpoint and Swift 1.5 build, measured interleaved on 2026-09-27 |
 | `benchmarks/2026-09-27/swift1.5-v2.2.0-ctx-itl-tpe.png` | 100644 | the bench card's chart (also shown in `README.md`) |
+| `docker-compose.yml` | 100644 | `MODEL_DIR=... docker compose up -d`: four GPUs, `/model` read-only, the `/cache` volume, port 8000 |
 | `docs/loop-check.md` | 100644 | the repetition-loop check at `xhigh`: protocol, detector, pass rule, results |
 | `quant/kv_scales-swift-e4m3.json` | 100644 | static FP8 E4M3 K/V scales calibrated on this checkpoint (sha256 `d211be1f3b0484d2e7d6592bf1dbd67fcfea89cdc22a389dab86b82df4f5fee5`, the same bytes as the checkpoint's `qsa_kv_scales_swift.json`); model-derived data under the Swift Open License v1.0 and the Qwen Community License 1.0 |
 | `release/PACKAGE-MANIFEST.md` | 100644 | this file |
 | `release/SHA256SUMS` | 100644 | SHA-256 of every tracked file except itself |
 | `release/checkpoint.sha256` | 100644 | SHA-256 of the 41 checkpoint files, in `sha256sum -c` format (run inside the checkpoint directory) |
 | `release/install-env.sh` | 100755 | installs the pinned engine into `engine/` (clone, commit and launcher assertions, release assets verified against the engine's pin file, the engine's own build) |
+| `serve/docker-entrypoint.sh` | 100755 | container entrypoint: checks the mounted checkpoint, GPUs, the nvcc-versus-driver rule and `/dev/shm`, then execs `serve/serve.sh` |
 | `serve/serve.sh` | 100755 | the serve entry: the v2.2.0 launcher, sha256-checked, with this checkpoint's sidecar and the `xhigh` default |
 
 ## Engine pin

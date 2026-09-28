@@ -1,0 +1,13 @@
+# Allow-list: the build context is the repository root, but the image needs only the install and serve routes and
+# the sidecar. Everything else stays out of the context (and so out of the image), including an engine installed
+# into the clone (engine/) and a checkpoint downloaded into it (ckpt/, *.safetensors would otherwise be sent to the
+# Docker daemon).
+*
+!LICENSE
+!release/install-env.sh
+!quant/kv_scales-swift-e4m3.json
+!serve
+**/__pycache__
+**/*.pyc
+**/*.bak*
+**/*.safetensors

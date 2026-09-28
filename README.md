@@ -61,12 +61,71 @@ curl -s localhost:8000/v1/chat/completions -H 'Content-Type: application/json' \
 How to tell the server is healthy: [Check it's working](#check-its-working). Read
 [Known behaviours](#known-behaviours) before putting it in front of clients.
 
+## Quick start (container)
+
+One image, built by the same install route as the bare-metal quick start (`release/install-env.sh` inside the image)
+and serving the same command (`serve/serve.sh`). The image has been built and its entrypoint checks run on a host
+without GPUs; GPU serving was verified on the bare-metal route, not yet inside the container. Host requirements:
+
+- Linux x86-64 with four RTX 3090s (24 GB each), headless, with working peer-to-peer, and the host RAM from
+  [Requirements](#requirements).
+- An NVIDIA driver for CUDA 13.0 or newer.
+- `nvidia-container-toolkit` registered with Docker
+  (`sudo nvidia-ctk runtime configure --runtime=docker && sudo systemctl restart docker`).
+- Docker Compose v2 (`docker compose`, not the 1.x `docker-compose`), for the compose route.
+- About 9 GB of disk for the image and 124 GB for the checkpoint.
+
+```bash
+git clone --branch v2.2.0-swift1.5 https://github.com/halt95/Swift1.5-qwen38-flash-next-3090s.git
+cd Swift1.5-qwen38-flash-next-3090s
+docker build -t swift1.5-qwen38-flash-next-3090s:v2.2.0-swift1.5 .   # the release's own install route
+hf download halt95/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin \
+  --revision 7ee538a4cf45d91c7bd71124c66038ac52b3a0f7 --local-dir /path/to/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin
+(cd /path/to/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin && sha256sum -c /path/to/clone/release/checkpoint.sha256)
+MODEL_DIR=/path/to/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin docker compose up -d
+docker compose logs -f flash-next      # wait for "Application startup complete" (first start compiles the graphs)
+curl -s localhost:8000/v1/chat/completions -H 'Content-Type: application/json' \
+  -d '{"model":"flash-next","messages":[{"role":"user","content":"hello"}],"max_tokens":512}'
+```
+
+`hf` is the Hugging Face CLI (`pipx install huggingface_hub`). The checkpoint is **mounted** at `/model`, never copied
+into the image; `.dockerignore` keeps the build context to the install and serve files and the sidecar, so an engine
+installed into the clone (`engine/`) or a checkpoint downloaded into it is not sent to Docker either.
+
+Without compose:
+
+```bash
+docker run -d --name flash-next --gpus all --ipc=host --ulimit memlock=-1 --stop-timeout 70 -p 8000:8000 \
+  -v /path/to/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin:/model:ro -v swift15-flash-next-cache:/cache \
+  swift1.5-qwen38-flash-next-3090s:v2.2.0-swift1.5
+```
+
+- `--ipc=host` (or `--shm-size=8g`): the parallel workers exchange data through `/dev/shm`; Docker's 64 MB default is
+  too small.
+- `--ulimit memlock=-1`: the host-resident tables are pinned host memory.
+- `--stop-timeout 70`: the server drains for up to 60 s on shutdown; Docker's 10 s default would kill it mid-drain.
+- The `/cache` volume keeps the engine's compile cache and FlashInfer's and Triton's kernels. The first start compiles
+  them (17 minutes from an empty cache in our bare-metal check); later starts reuse them.
+- The image sets `HF_HUB_OFFLINE=1` and the launcher turns vLLM usage statistics off, so the container neither reports
+  usage nor contacts the Hugging Face Hub.
+
+**Settings** are `serve/serve.sh`'s environment variables (see [Build and serve](#build-and-serve)), passed with `-e`
+(or under `environment:` in compose): `PORT` (8000), `MODEL_NAME`, `SCALES`, `COUNTERS`, `VLLM_API_KEY` and the rest
+of the launcher's knobs. Arguments after the image name go to `vllm serve`, as with `serve/serve.sh`; for a shell in
+the image use `docker run --rm -it --entrypoint bash swift1.5-qwen38-flash-next-3090s:v2.2.0-swift1.5`.
+
+The endpoint has no API key and publishes port 8000 on every interface. If the host is reachable from other machines,
+set `VLLM_API_KEY` (clients then send `Authorization: Bearer <key>`), or publish `127.0.0.1:8000:8000` behind a proxy.
+The image's `HEALTHCHECK` runs a one-token generation, not `/v1/models`, which keeps answering after the engine has
+died: `docker inspect --format '{{.State.Health.Status}}' flash-next`.
+
 ## Build and serve
 
 | path | what |
 |---|---|
 | `release/install-env.sh` | clones the Flash-Next v2.2.0 repository into `engine/` (or `ENGINE=`), checks out the pinned commit and asserts it, a clean tracked tree and the launcher's sha256; downloads the two v2.2.0 release assets (the delta bundle and the compiled-ops tarball) and verifies them against the engine's `upstream/PIN-v2.2`; then runs the engine's `scripts/build-v2.2.sh ./vllm-v2.2 ./venv-v2.2`. Every step checks its exit code; it refuses an existing `engine/` at another commit |
 | `serve/serve.sh` | starts the engine's `scripts/serve-v2.2.sh` with this checkpoint's sidecar and the `xhigh` default; refuses to start unless that launcher is the published v2.2.0 file (sha256 checked) and the sidecar exists |
+| `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `serve/docker-entrypoint.sh` | the container route ([Quick start (container)](#quick-start-container)): the same install route inside the image, the checkpoint mounted at `/model`; built and entrypoint-checked without GPUs, not yet GPU-served in a container |
 | `quant/kv_scales-swift-e4m3.json` | the static FP8 K/V scales recalibrated on this checkpoint (the same bytes as `qsa_kv_scales_swift.json` in the checkpoint) |
 | `release/checkpoint.sha256` | checksums of the 41 checkpoint files |
 | `release/SHA256SUMS`, `PACKAGE-MANIFEST.md` | checksums of every other file in this repository, and what each file is |
