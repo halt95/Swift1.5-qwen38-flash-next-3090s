@@ -6,9 +6,9 @@ Apache License, Version 2.0 (see LICENSE). The KV-scale sidecar quant/kv_scales-
 data, not Apache-2.0; see "Swift 1.5 weights" below.
 
 Serving engine (not included in this repository)
-  Flash-Next v2.2.0, a modified version of vLLM (https://github.com/vllm-project/vllm, Apache License 2.0,
-  Copyright the vLLM project contributors), https://github.com/halt95/qwen38-flash-next-3090s at tag v2.2.0
-  (commit cda592711239fa5061d59ef4858db4e68b217445). release/install-env.sh clones and builds it; it is not copied
+  Flash-Next v2.5.1, a modified version of vLLM (https://github.com/vllm-project/vllm, Apache License 2.0,
+  Copyright the vLLM project contributors), https://github.com/halt95/qwen38-flash-next-3090s at tag v2.5.1
+  (commit 352e0065bd28686d60d8b13c1d2b16783ade6b2d). release/install-env.sh clones and builds it; it is not copied
   into or modified by this repository. That repository carries its own LICENSE and NOTICE, which list the vLLM
   files it adds and modifies and credit the upstream pull requests it ports.
 
@@ -72,7 +72,7 @@ Other sources in the served checkpoint:
     https://huggingface.co/halt95/Qwen3.8-Flash-Next-W4A16-Merlin
     (Qwen Community License 1.0).
   - Serving engine: vLLM, Apache License 2.0, https://github.com/vllm-project/vllm,
-    run through the unchanged Flash-Next v2.2.0 release (see above; not included in this repository).
+    run through the unchanged Flash-Next v2.5.1 release (see above; not included in this repository).
 
 Changes made in this derivative (halt95, 2026):
   - model-*.safetensors: rebuilt from halt95/Qwen3.8-Flash-Next-W4A16-Merlin with the 300 tensors that Swift 1.5
@@ -88,6 +88,12 @@ Changes made in this derivative (halt95, 2026):
     file is model-derived data, not Apache-2.0: it is subject to the Swift Open License v1.0 (LICENSE-SWIFT in this
     repository) and the Qwen Community License 1.0 (LICENSE-QWEN in this repository), the same two licences as the
     checkpoint it was calibrated on.
+  - tokenizer.json: replaced on 2026-10-06 with the original Qwen3.8-Flash-Next file
+    (https://huggingface.co/Qwen/Qwen3.8-Flash-Next, sha256
+    0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3), unmodified, under the Qwen Community License
+    1.0. The file the checkpoint shipped before that date was UkisAI's re-serialised tokenizer.json (sha256
+    06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523); its vocabulary, merges and added tokens are
+    identical to the original's, its pre-tokenizer pattern is not. tokenizer_config.json is UkisAI's, unchanged.
   - This repository's README.md, CHANGELOG.md, NOTICE, docs/, benchmarks/, serve/serve.sh and release/: written
     for this checkpoint by halt95.
   - LICENSE-SWIFT (Swift Open License v1.0 text) and LICENSE-QWEN (Qwen Community License 1.0 text) are unchanged

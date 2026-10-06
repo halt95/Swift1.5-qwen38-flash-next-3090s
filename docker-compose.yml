@@ -1,12 +1,12 @@
-# Swift 1.5 on Flash-Next v2.2.0 with one command, from the repository root:
+# Swift 1.5 on Flash-Next v2.5.1 with one command, from the repository root:
 #   MODEL_DIR=/path/to/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin docker compose up -d
 # then talk to http://localhost:8000/v1 (OpenAI-compatible; model name "flash-next", also "flash-next-v2").
-# The first start compiles the graphs and FlashInfer's kernels into the swift15-flash-next-cache volume (17 min from an
-# empty cache in our check); later starts reuse it. Needs Docker Compose v2 and nvidia-container-toolkit registered
+# The first start compiles the graphs and FlashInfer's kernels into the swift15-flash-next-cache-v2.5 volume (a v2.2
+# cache does not carry over); later starts reuse it. Needs Docker Compose v2 and nvidia-container-toolkit registered
 # with Docker (nvidia-ctk runtime configure --runtime=docker).
 services:
   flash-next:
-    image: swift1.5-qwen38-flash-next-3090s:v2.2.0-swift1.5
+    image: swift1.5-qwen38-flash-next-3090s:v2.5.1-swift1.5
     build:
       context: .
       dockerfile: Dockerfile
@@ -28,8 +28,8 @@ services:
       # VLLM_API_KEY: ...               # set it and clients must send the same value as a Bearer token
     volumes:
       - "${MODEL_DIR:?set MODEL_DIR to the checkpoint directory}:/model:ro"
-      - swift15-flash-next-cache:/cache
+      - swift15-flash-next-cache-v2.5:/cache
     restart: unless-stopped
     stop_grace_period: 70s              # the launcher passes --shutdown-timeout 60; Docker's 10 s default would kill a draining server
 volumes:
-  swift15-flash-next-cache: {}
+  swift15-flash-next-cache-v2.5: {}

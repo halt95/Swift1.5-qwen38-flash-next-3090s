@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Container entrypoint: checks the mounted checkpoint, the visible GPUs, the first-serve toolchain against the host
-# driver and /dev/shm, then execs serve/serve.sh (the v2.2.0 launcher with this checkpoint's sidecar and the xhigh
+# driver and /dev/shm, then execs serve/serve.sh (the v2.5.1 launcher with this checkpoint's sidecar and the xhigh
 # default). Extra arguments go to `vllm serve`, as with serve/serve.sh.
 #
-#   docker run ... swift1.5-qwen38-flash-next-3090s:v2.2.0-swift1.5 [/path/inside/container/to/checkpoint] [extra vllm args]
+#   docker run ... swift1.5-qwen38-flash-next-3090s:v2.5.1-swift1.5 [/path/inside/container/to/checkpoint] [extra vllm args]
 #
 # A first argument that starts with `-` is a vllm argument: the default checkpoint path /model is used. Serve knobs
 # are serve/serve.sh's environment variables (PORT, HOST, MODEL_NAME, SCALES, COUNTERS, VLLM_API_KEY, ...): pass them
@@ -61,7 +61,7 @@ if [ -z "$nv_rel" ] || [ -z "$drv_rel" ]; then
   echo "note: could not read the nvcc (${nv_rel:-?}) or driver (${drv_rel:-?}) CUDA version; the nvcc-versus-driver check is skipped"
 elif [ "$(printf '%s\n%s\n' "$nv_rel" "$drv_rel" | sort -V | tail -1)" != "$drv_rel" ]; then
   echo "nvcc at $CUDA_HOME is CUDA $nv_rel but the driver supports CUDA $drv_rel: kernels compiled on the first" >&2
-  echo "serve would be rejected. Upgrade the host driver (CUDA 13.0 or newer; README.md, Requirements)." >&2
+  echo "serve would be rejected. Upgrade the host driver (CUDA 13.0 or newer; docs/reference.md, Build and serve)." >&2
   exit 1
 fi
 
@@ -76,5 +76,5 @@ if [ -n "$memlock" ] && [ "$memlock" != unlimited ]; then
   echo "WARNING: locked-memory limit is ${memlock} KB; the host-resident tables use pinned memory (docker run --ulimit memlock=-1)"
 fi
 
-echo "serving $CKPT on ${HOST:-127.0.0.1}:${PORT:-8000} (serve/serve.sh: v2.2.0 launcher, Swift sidecar, xhigh default)"
+echo "serving $CKPT on ${HOST:-127.0.0.1}:${PORT:-8000} (serve/serve.sh: v2.5.1 launcher, Swift sidecar, xhigh default)"
 exec bash "$REPO/serve/serve.sh" "$CKPT" "$@"
