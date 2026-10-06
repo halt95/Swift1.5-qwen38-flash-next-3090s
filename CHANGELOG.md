@@ -26,7 +26,8 @@ v2.2.0-swift1.5.
   tokens.
 - **Tokenizer and image fixes.** Transformers 5.18.0 handles combining marks as intended, with parity on 92 items.
   Prompts can contain up to 42 images, each capped at 4 MP.
-- **Faster cold prefill.** 5,206 tok/s at 10K and 5,473 tok/s at 100K tokens.
+- **Cold prefill.** 5,206 tok/s at 10K and 5,473 tok/s at 100K tokens; the engine measures v2.5.1 1.0–2.8 % faster
+  than v2.2.0 on the Merlin checkpoint (not compared on this one).
 - **Stability checks passed.** GSM8K-200 scored 197/200 (thinking off), structured output passed 80/80 cases, the
   131K and 262K needles were found exactly, cache hits were valid on 20 of 20 prompt pairs, and 0 engine errors
   occurred while serving.

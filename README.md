@@ -117,8 +117,8 @@ v2.2.0-swift1.5.
 - Agent follow-up turns resume from cache on a 64-token grid, and a conversation's cached prefix is kept until its
   next turn: a follow-up starts in 0.96 s, and with 8 deep conversations 93.0 % of follow-up tokens come from cache.
 - The KV pool grows from 806,792 to 924,993 tokens (+15 %) on the same weights.
-- Cold prefill is faster; single-stream decode is about 3 % slower (the engine's measurement, not re-measured on this
-  checkpoint).
+- Cold prefill runs at 5,206–5,473 tok/s (10K–100K tokens). Against v2.2.0 the engine measures prefill 1.0–2.8 %
+  faster and single-stream decode about 3 % slower, on the Merlin checkpoint (not re-measured on this one).
 - Combining marks tokenize as intended (transformers 5.18.0), and a prompt can carry up to 42 images.
 
 Full patch notes, with every measurement: [CHANGELOG.md](CHANGELOG.md).
@@ -139,8 +139,8 @@ Full patch notes, with every measurement: [CHANGELOG.md](CHANGELOG.md).
   settings (a 924,993-token pool, requests up to 262,144 tokens) this cannot occur.
 - With 8 long agent sessions and a nearly full pool, a few follow-ups (3 of 82 in 5 minutes) still re-read their whole
   conversation.
-- Our quality evidence is GSM8K-200 and a repetition-loop check at `xhigh`; UkisAI's published evaluations are of the
-  BF16 model, not of this quantised build.
+- Beyond the release checks above, our quality evidence is GSM8K-200 and a repetition-loop check at `xhigh`;
+  UkisAI's published evaluations are of the BF16 model, not of this quantised build.
 - Tested on one setup: 4× RTX 3090 at 220 W, PCIe Gen4 x16, with peer-to-peer.
 
 The full list, with causes and mitigations: [Known behaviours](docs/reference.md#known-behaviours-of-the-qwen38-flash-next-architecture-in-vllm).

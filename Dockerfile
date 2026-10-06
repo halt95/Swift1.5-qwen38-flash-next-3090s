@@ -10,7 +10,7 @@
 # Run (four cards; README.md "Container" has compose):
 #
 #   docker run --gpus all --ipc=host --ulimit memlock=-1 --stop-timeout 70 -p 8000:8000 \
-#     -v /path/to/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin:/model:ro -v swift15-flash-next-cache:/cache \
+#     -v /path/to/Swift1.5-Qwen3.8-Flash-Next-W4A16-Merlin:/model:ro -v swift15-flash-next-cache-v2.5:/cache \
 #     swift1.5-qwen38-flash-next-3090s:v2.5.1-swift1.5
 #
 # Runtime kernel compilation. The build compiles nothing (the engine's compiled ops come from its release asset), but

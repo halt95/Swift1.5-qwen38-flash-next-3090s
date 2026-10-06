@@ -309,8 +309,8 @@ Specific to this checkpoint:
   Swift 1.5 ([UkisAI's model card](https://huggingface.co/ukisai/Swift1.5-Qwen3.8-Flash-Next) reports its evaluations
   at `xhigh`). On GSM8K-200 on v2.2.0, `xhigh` cost this checkpoint 304 completion tokens per answer against 259 at
   `low`, at the same accuracy; the Merlin checkpoint's `xhigh` cost 416.
-- **Quality evidence** is GSM8K-200 and the `xhigh` loop check; we ran no broader evaluation. UkisAI's published
-  evaluations are of the BF16 model, not of this quantised build.
+- **Quality evidence**, beyond the release checks, is GSM8K-200 and the `xhigh` loop check; we ran no broader
+  evaluation. UkisAI's published evaluations are of the BF16 model, not of this quantised build.
 - **MTP decode speed.** With MTP, single-request tokens/s depends on how much of the drafted text is accepted; judge
   speed by step time, not by one request's tokens/s.
 
